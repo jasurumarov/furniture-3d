@@ -4,15 +4,6 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Smartphone, Eye } from 'lucide-react'
 
-// Declare model-viewer as a custom element
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': any
-    }
-  }
-}
-
 interface ARViewerProps {
   glbUrl: string
   usdzUrl: string
@@ -33,11 +24,6 @@ export default function ARViewer({ glbUrl, usdzUrl, className = "" }: ARViewerPr
     setIsIOS(isIOSDevice)
     setIsAndroid(isAndroidDevice)
     setIsMobile(isMobileDevice)
-
-    // Load model-viewer script
-    if (typeof window !== 'undefined' && !window.customElements.get('model-viewer')) {
-      import('@google/model-viewer')
-    }
   }, [])
 
   const handleARView = () => {
@@ -49,34 +35,19 @@ export default function ARViewer({ glbUrl, usdzUrl, className = "" }: ARViewerPr
       link.appendChild(document.createElement('img'))
       link.click()
     } else if (isAndroid) {
-      // For Android, we'll show the model-viewer with AR button
-      window.open(`data:text/html,
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>AR View</title>
-          <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-          <style>
-            body { margin: 0; padding: 0; background: #000; }
-            model-viewer { width: 100vw; height: 100vh; }
-            .close-btn { position: absolute; top: 20px; right: 20px; background: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; cursor: pointer; z-index: 1000; }
-          </style>
-        </head>
-        <body>
-          <button class="close-btn" onclick="window.close()">×</button>
-          <model-viewer 
-            src="${glbUrl}" 
-            ar 
-            ar-modes="webxr scene-viewer quick-look" 
-            camera-controls 
-            shadow-intensity="1" 
-            auto-rotate>
-          </model-viewer>
-        </body>
-        </html>
-      `, '_blank')
+      // For Android, try to open with Scene Viewer (Google's AR viewer)
+      const sceneViewerUrl = `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(window.location.origin + glbUrl)}&mode=ar_only`
+      
+      // Try Scene Viewer first
+      const link = document.createElement('a')
+      link.href = sceneViewerUrl
+      link.target = '_blank'
+      link.click()
+      
+      // Fallback: Show instructions for manual AR viewing
+      setTimeout(() => {
+        alert('If AR didn\'t open automatically, you can:\n1. Download the GLB file\n2. Open it with a compatible AR app\n3. Or visit the model URL directly in Chrome on Android')
+      }, 2000)
     }
   }
 
