@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Smartphone, Eye } from 'lucide-react'
+import { Smartphone, Eye, QrCode } from 'lucide-react'
+import QRCodeGenerator from './qr-code-generator'
 
 interface ARViewerProps {
   glbUrl: string
@@ -14,6 +15,7 @@ export default function ARViewer({ glbUrl, usdzUrl, className = "" }: ARViewerPr
   const [isIOS, setIsIOS] = useState(false)
   const [isAndroid, setIsAndroid] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [showQRCode, setShowQRCode] = useState(false)
 
   useEffect(() => {
     const userAgent = navigator.userAgent.toLowerCase()
@@ -61,13 +63,49 @@ export default function ARViewer({ glbUrl, usdzUrl, className = "" }: ARViewerPr
     }
   }
 
+  const generateARUrl = () => {
+    const baseUrl = window.location.origin
+    const arUrl = new URL('/ar', baseUrl)
+    arUrl.searchParams.set('product', 'Modern Comfort Sofa')
+    arUrl.searchParams.set('glb', glbUrl)
+    arUrl.searchParams.set('usdz', usdzUrl)
+    return arUrl.toString()
+  }
+
+  const handleQRCodeView = () => {
+    setShowQRCode(true)
+  }
+
   if (!isMobile) {
     return (
-      <div className={`flex items-center justify-center p-4 bg-gray-50 rounded-lg ${className}`}>
-        <div className="text-center text-gray-500">
-          <Smartphone className="w-8 h-8 mx-auto mb-2" />
-          <p className="text-sm">AR viewing is available on mobile devices</p>
+      <div className={`space-y-4 ${className}`}>
+        <div className="flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-dashed border-blue-200">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+              <Smartphone className="w-8 h-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">View in AR on Mobile</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Generate a QR code to scan with your mobile device for AR viewing
+            </p>
+            
+            <Button
+              onClick={handleQRCodeView}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+              size="lg"
+            >
+              <QrCode className="w-5 h-5 mr-2" />
+              Generate QR Code
+            </Button>
+          </div>
         </div>
+
+        <QRCodeGenerator
+          url={generateARUrl()}
+          title="Modern Comfort Sofa - AR View"
+          isOpen={showQRCode}
+          onClose={() => setShowQRCode(false)}
+        />
       </div>
     )
   }
